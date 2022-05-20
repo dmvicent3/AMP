@@ -4,7 +4,7 @@ const { TileSprite, Texture } = lib;
 const texture = new Texture("res/images/player/spritesheet2.png");
 
 class Player extends TileSprite {
-  constructor(controls, playerInitPos) {
+  constructor(controls) {
     super(texture, 128, 64);
 
     this.controls = controls;
@@ -38,7 +38,6 @@ class Player extends TileSprite {
 
     this.speed = this.minSpeed;
     this.dir = 1;
-    this.pos = playerInitPos;
     this.nextCell = this.speed;
 
   }
@@ -62,7 +61,7 @@ class Player extends TileSprite {
 
     if (x) {
       this.dir = x;
-      pos.x += x * speed;
+     // pos.x += x * speed;
 
       if (this.dir > 0) {
         this.anims.play("walk-right");
