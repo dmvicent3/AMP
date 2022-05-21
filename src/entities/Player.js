@@ -1,4 +1,6 @@
 import lib from "../../lib/index.js";
+import State from "../../lib/State.js";
+
 const { TileSprite, Texture } = lib;
 
 const texture = new Texture("res/images/player/spritesheet2.png");
@@ -33,55 +35,81 @@ class Player extends TileSprite {
 
     anims.add("death-left", [{ x: 7, y: 25 + 5 }, { x: 6, y: 25 + 5 }, { x: 7, y: 25 + 6 }, { x: 6, y: 25 + 6 }], 0.1);
 
+    this.states = {
+      IDLE: 0,
+      WALK: 1,
+      ATTACK: 2
+    };
+    this.state = new State(this.states.IDLE);
     this.minSpeed = 1;
-    this.reset();
-
+    this.idle();
     this.speed = this.minSpeed;
+    this.attackStartTime;
     this.dir = 1;
-    this.nextCell = this.speed;
+  }
+
+  idle(dir) {
+    if (this.state.get() !== this.states.ATTACK) {
+      if (dir > 0) {
+        this.anims.play("idle-right");
+      } else {
+        this.anims.play("idle-left");
+      }
+
+      this.state.set(this.states.IDLE);
+    }
 
   }
 
-  reset() {
-    //this.speed = this.minSpeed * 5;
-    if (this.dir > 0) {
-      this.anims.play("idle-right");
-    }else{
-      this.anims.play("idle-left");
+  attack(dir, t) {
+    if (this.state.get() !== this.states.ATTACK) {
+      if (dir > 0) {
+        this.anims.play("attack-right");
+      } else {
+        this.anims.play("attack-left");
+      }
+
+      this.state.set(this.states.ATTACK);
+      return t;
+    }
+  }
+
+  walk(dir) {
+    if (this.state.get() !== this.states.ATTACK) {
+      if (dir > 0) {
+        this.anims.play("walk-right");
+      } else {
+        this.anims.play("walk-left");
+      }
+      this.state.set(this.states.WALK);
     }
   }
 
 
   update(dt, t) {
     super.update(dt, t);
-    const { pos, controls, anims, minSpeed, dir } = this;
-    let speed = this.speed;
-
-    const { x } = controls;
+    const { controls } = this;
+    const { x, action } = controls;
+    const attackAnimTime = 1;
 
     if (x) {
       this.dir = x;
-     // pos.x += x * speed;
-
-      if (this.dir > 0) {
-        this.anims.play("walk-right");
-      } else {
-        this.anims.play("walk-left");
-      }
-
-
+      this.walk(this.dir)
     } else {
-      this.reset();
+      this.idle(this.dir);
     }
 
-    /*if ((this.nextCell -= dt) <= 0) {
-      this.nextCell += speed;
-      
-    }*/
+    if (action) {
+      if (!this.state.is(this.states.ATTACK)) {
+        this.attackStartTime = this.attack(this.dir, t);
+      }
+    }
 
+    if (t >= this.attackStartTime + attackAnimTime) {
+      this.state.set(this.states.WALK);
+    }
 
-
-
+    this.state.update(dt);
   }
 }
 

@@ -17,16 +17,16 @@ class TitleScreen extends Container {
             return this.add(text);
         };
 
-        this.add(new ForestLevel(game.w, game.h));
+        this.add(new ForestLevel(game.w, game.h, { x:0, y: 0 }, null));
         this.title = drawText("VIDEOGAME", { x: game.w/2, y: 100 }, 40);
-        this.begin = drawText("Press SPACEBAR to begin", { x: game.w/2, y: game.h/1.5 });
+        this.begin = drawText("Press any key to begin", { x: game.w/2, y: game.h/1.5 });
     }
 
     update(dt, t) {
         super.update(dt, t);
         const { title, controls } = this;
-        
-        if (controls.action) {
+
+        if (controls.any) {
             this.onStart();
         }
     }
