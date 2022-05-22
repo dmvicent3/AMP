@@ -38,14 +38,25 @@ class Player extends TileSprite {
     this.states = {
       IDLE: 0,
       WALK: 1,
-      ATTACK: 2
+      ATTACK: 2,
+      HURT: 3,
+      DYING: 4,
+      DEAD: 5
     };
-    this.state = new State(this.states.IDLE);
-    this.minSpeed = 1;
-    this.idle();
-    this.speed = this.minSpeed;
-    this.attackStartTime;
+
+    this.hp = 100;
+    this.power = 50;
+    this.speed = 1;
     this.dir = 1;
+
+    this.attackAnimTime = 1;
+    this.attackStartTime;
+    this.firstAttackDelay = 0.3;
+    this.secondAttackDelay = 0.6;
+    this.hit = false;
+
+    this.state = new State(this.states.IDLE);
+    this.idle();
   }
 
   idle(dir) {
@@ -90,7 +101,7 @@ class Player extends TileSprite {
     super.update(dt, t);
     const { controls } = this;
     const { x, action } = controls;
-    const attackAnimTime = 1;
+    this.hit = false;
 
     if (x) {
       this.dir = x;
@@ -105,10 +116,21 @@ class Player extends TileSprite {
       }
     }
 
-    if (t >= this.attackStartTime + attackAnimTime) {
-      this.state.set(this.states.WALK);
+    if (this.state.is(this.states.ATTACK)) {
+      if (t >= this.attackStartTime + this.firstAttackDelay && t <= this.attackStartTime + this.secondAttackDelay - 0.1) {
+        this.hit = true;
+      }
+
+      if (t >= this.attackStartTime + this.secondAttackDelay && t <= this.attackStartTime + this.attackAnimTime - 0.1) {
+        this.hit = true;
+      }
     }
 
+
+    if (t >= this.attackStartTime + this.attackAnimTime) {
+      this.state.set(this.states.WALK);
+    }
+    
     this.state.update(dt);
   }
 }

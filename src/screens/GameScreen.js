@@ -9,12 +9,13 @@ class GameScreen extends Container {
         super();
         const player = new Player(controls);
         const level = new ForestLevel(game.w, game.h, { x: 0, y: -396.5 }, player);
-        player.pos = level.playerInitPos;
-
         this.add(level);
+        player.pos = level.playerInitPos;
+        this.player = player;
+        
         this.enemies = [];
 
-        const skeletonPositions = [{ x: 800, y: level.h - 200 }];
+        const skeletonPositions = [{ x: 1300, y: level.h - 200 }];
         skeletonPositions.forEach((pos) => {
             const skeleton = new Skeleton(this.player);
             skeleton.pos = pos;
@@ -23,7 +24,6 @@ class GameScreen extends Container {
         });
         this.add(player);
         this.level = level;
-        this.player = player;
     }
 
     update(dt, t) {
