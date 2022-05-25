@@ -13,8 +13,8 @@ function titleScreen() {
     game.scene = new TitleScreen(game, controls, newGame);
 }
 
-function gameOverScreen(result) {
-    game.scene = new GameOverScreen(game, controls, result, titleScreen);
+function gameOverScreen() {
+    game.scene = new GameOverScreen(game, controls, titleScreen);
 }
 
 function newGame() {
