@@ -19,27 +19,22 @@ class GameOverScreen extends Container {
 
     this.add(new ForestLevel(game.w, game.h));
 
-   /* const complete = (stats.pellets / stats.maxPellets * 100).toFixed(1);
-    if (stats.score > hiscore.bestScore) {
-      hiscore.bestScore = stats.score;
-    }
-    if (complete > hiscore.bestComplete) {
-      hiscore.bestComplete = complete;
-    }*/
 
     drawText("GAME OVER", { x: game.w / 2, y: 120 }, 44);
-   /* drawText(`Completed: ${complete}%`, { x: game.w / 2, y: 230 }, 30);
-    drawText(`best: ${hiscore.bestComplete}%`, { x: game.w / 2, y: 260 });
-    drawText("Score: " + stats.score, { x: game.w / 2, y: 310 }, 30);
-    drawText("best: " + hiscore.bestScore, { x: game.w / 2, y: 340 });*/
+    drawText("Press any key to return", { x: game.w / 2, y: 200 });
+    this.life = 2;
   }
 
   update(dt, t) {
     super.update(dt, t);
+    this.life -= dt;
 
-    if (this.controls.any) {
-      this.onStart();
+    if (this.life < 0) {
+      if (this.controls.any) {
+        this.onStart();
+      }
     }
+
   }
 }
 

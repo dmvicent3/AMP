@@ -1,5 +1,5 @@
 import lib from "../../lib/index.js";
-const { Container } = lib;
+const { Container, Text } = lib;
 import Player from "../entities/Player.js";
 import ForestLevel from "../ForestLevel.js";
 import Skeleton from "../entities/Skeleton.js";
@@ -8,7 +8,9 @@ class GameScreen extends Container {
     constructor(game, controls, gameOver) {
         super();
         this.gameOver = gameOver;
+        this.gameOverDelay = 1.5;
         const player = new Player(controls);
+        controls.reset();
         const level = new ForestLevel(game.w, game.h, { x: 0, y: -396.5 }, player);
         this.add(level);
         player.pos = level.playerInitPos;
@@ -16,7 +18,7 @@ class GameScreen extends Container {
 
         this.enemies = [];
 
-        const skeletonPositions = [{ x: 1300, y: level.h - 200 },/* { x: 1500, y: level.h - 200 }*/];
+        const skeletonPositions = [{ x: 1300, y: level.h - 200 }, { x: 1500, y: level.h - 200 }];
         skeletonPositions.forEach((pos) => {
             const skeleton = new Skeleton(this.player);
             skeleton.pos = pos;
@@ -25,11 +27,29 @@ class GameScreen extends Container {
         });
         this.add(player);
         this.level = level;
+        this.playerHp = this.drawText("❤" + this.player.hp, { x: 150, y: 50 });
+        this.add(this.playerHp);
     }
+
+    drawText(msg, pos, size = 48) {
+        const font = `${size}pt 'VT323', monospace`;
+        const text = new Text(msg, { font: font, fill: "#fff", align: "center" });
+        text.pos = pos;
+        //text.anchor.x = 
+        return text;
+    };
+
 
     update(dt, t) {
         super.update(dt, t);
         const { player, level } = this;
+
+        //Atualizar HP Overlay
+        this.remove(this.playerHp);
+        this.playerHp = this.drawText("❤" + this.player.hp, { x: 150, y: 50 });
+        this.add(this.playerHp);
+
+
         if (!player.state.is(player.states.DEAD)) {
             if (player.state.is(player.states.WALK)) {
                 if (player.pos.x < level.w / 3) { //Centrar o player no ecrã
@@ -71,8 +91,13 @@ class GameScreen extends Container {
                     });
                 }
             }
-        }else {
-            this.gameOver;
+        } else {
+            this.gameOverDelay -= dt;
+
+            if (this.gameOverDelay < 0) {
+                this.gameOver();
+            }
+            
         }
     }
 }

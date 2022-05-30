@@ -203,16 +203,15 @@ class Skeleton extends TileSprite {
 
         //Hurt player
 
-        if (this.hit && this.hitPlayer() && this.dir !== this.player.dir) {
+        if (this.hit && this.hitPlayer()) {
           this.player.gotHit(this.power, t);
         }
 
       } else {
         this.idle();
       }
-    } else {
-      this.idle();
-    }
+    } 
+    //console.log(this.state.get())
   }
 
 }

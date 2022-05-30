@@ -38,8 +38,8 @@ class Player extends TileSprite {
     anims.add("hurt-right", [{ x: 0, y: 11 }], 0.1);
     anims.add("hurt-left", [{ x: 7, y: 25 + 11 },], 0.1);
 
-    anims.add("dead-right", [{ x: 1, y: 6 }], 0.1);
-    anims.add("dead-left", [{ x: 6, y: 25 + 6 },], 0.1);
+    anims.add("dead-right", [{ x: 1, y: 6 },{ x: 1, y: 6 }], 0.1);
+    anims.add("dead-left", [{ x: 6, y: 25 + 6 },{ x: 6, y: 25 + 6 }], 0.1);
 
     this.states = {
       IDLE: 0,
@@ -56,7 +56,7 @@ class Player extends TileSprite {
     this.dir = 1;
 
     this.attackAnimTime = 1;
-    this.deathAnimTime = 0.4;
+    this.deathAnimTime = 0.3;
     this.hurtAnimTime = 0.1;
     this.deathStartTime = 0;
     this.hurtStartTime = 0;
