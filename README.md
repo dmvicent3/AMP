@@ -9,10 +9,16 @@ Objetivos:
   - Controlo fluído do Player
   - Enemy Path Finding / Enemy "AI"
   - Player / Enemy HP System
+  - Screen UI com vida/items do player
+  - Item Pickup System
   - State Management
   - Collision detection entre Player e Enemy
   - Sons para as diferentes ações do Player / Enemy
 
+Controlos:
+  - A / D = Esquerda / Direita
+  - Espaço = Ataque
+  - X = Potion
 
 Assets usadas:
 - https://szadiart.itch.io/2d-soulslike-character

@@ -1,8 +1,15 @@
 import lib from "../../lib/index.js";
-const { Container, Text } = lib;
+const { Container, Text, Sprite, Texture, entity } = lib;
 import Player from "../entities/Player.js";
 import ForestLevel from "../ForestLevel.js";
 import Skeleton from "../entities/Skeleton.js";
+import Pickup from "../entities/Pickup.js";
+
+const potionTexture = new Texture("/AMP/res/images/potion.png");
+const potion = new Sprite(potionTexture);
+//potion.anchor.y = 36;
+potion.pos.y = 46;
+potion.pos.x = 300;
 
 class GameScreen extends Container {
     constructor(game, controls, gameOver) {
@@ -29,6 +36,13 @@ class GameScreen extends Container {
         this.level = level;
         this.playerHp = this.drawText("❤" + this.player.hp, { x: 150, y: 50 });
         this.add(this.playerHp);
+        this.add(potion)
+        this.nPotions = this.drawText(this.player.potions, { x: 322, y: 60 }, 28);
+        this.add(this.nPotions);
+
+        this.pickups = [];
+        this.lastPickupAt = 0;
+        this.addPickup();
     }
 
     drawText(msg, pos, size = 48) {
@@ -39,17 +53,28 @@ class GameScreen extends Container {
         return text;
     };
 
+    addPickup() {
+        const p = new Pickup("potion");
+        p.pos = { x: this.player.pos.x + 300, y: this.player.pos.y + 84 }
+        p.scale = { x: 0.5, y: 0.5 };
+        this.pickups.push(p);
+        this.add(p);
+    }
+
 
     update(dt, t) {
         super.update(dt, t);
         const { player, level } = this;
-
-        //Atualizar HP Overlay
+        //Atualizar HP Overlay e Potions
         this.remove(this.playerHp);
         this.playerHp = this.drawText("❤" + this.player.hp, { x: 150, y: 50 });
         this.add(this.playerHp);
 
+        this.remove(this.nPotions);
+        this.nPotions = this.drawText(this.player.potions.toString(), { x: 322, y: 60 }, 28);
+        this.add(this.nPotions);
 
+        this.updatePickups(t);
         if (!player.state.is(player.states.DEAD)) {
             if (player.state.is(player.states.WALK)) {
                 if (player.pos.x < level.w / 3) { //Centrar o player no ecrã
@@ -97,8 +122,32 @@ class GameScreen extends Container {
             if (this.gameOverDelay < 0) {
                 this.gameOver();
             }
-            
+
         }
+    }
+
+    updatePickups(t) {
+        const { pickups } = this;
+        pickups.forEach( (item, index)=> {
+            console.log(entity.distance(this.player, item) < 40);
+            if (entity.distance(this.player, item) < 40) {
+                switch (item.name) {
+                    case "potion":
+                        this.player.potions++;
+                        break;
+                }
+                item.dead = true;
+                this.pickups.splice(index, 1)
+                this.remove(item)
+            }
+
+        });
+
+        /*if (t - this.lastPickupAt > 1) {
+            this.lastPickupAt = t;
+            this.addPickup();
+            
+        }*/
     }
 }
 

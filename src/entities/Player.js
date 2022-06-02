@@ -38,28 +38,39 @@ class Player extends TileSprite {
     anims.add("hurt-right", [{ x: 0, y: 11 }], 0.1);
     anims.add("hurt-left", [{ x: 7, y: 25 + 11 },], 0.1);
 
-    anims.add("dead-right", [{ x: 1, y: 6 },{ x: 1, y: 6 }], 0.1);
-    anims.add("dead-left", [{ x: 6, y: 25 + 6 },{ x: 6, y: 25 + 6 }], 0.1);
+    anims.add("dead-right", [{ x: 1, y: 6 }, { x: 1, y: 6 }], 0.1);
+    anims.add("dead-left", [{ x: 6, y: 25 + 6 }, { x: 6, y: 25 + 6 }], 0.1);
+
+    anims.add("drink-right", [{ x: 0, y: 7 }, { x: 1, y: 7 }, { x: 0, y: 8 }, { x: 1, y: 8 },
+    { x: 0, y: 9 }, { x: 1, y: 9 }, { x: 0, y: 10 }, { x: 1, y: 10 }], 0.1);
+
+    anims.add("drink-left", [{ x: 7, y: 25 + 7 }, { x: 6, y: 25 + 7 }, { x: 7, y: 25 + 8 }, { x: 6, y: 25 + 8 },
+    { x: 7, y: 25 + 9 }, { x: 6, y: 25 + 9 }, { x: 7, y: 25 + 10 }, { x: 6, y: 25 + 10 }], 0.1);
+
 
     this.states = {
       IDLE: 0,
       WALK: 1,
       ATTACK: 2,
       HURT: 3,
-      DYING: 4,
-      DEAD: 5
+      DRINK: 4,
+      DYING: 5,
+      DEAD: 6
     };
 
     this.hp = 100;
+    this.potions = 1;
     this.power = 50;
     this.speed = 1;
     this.dir = 1;
 
     this.attackAnimTime = 1;
+    this.drinkAnimTime = 0.8;
     this.deathAnimTime = 0.3;
     this.hurtAnimTime = 0.1;
     this.deathStartTime = 0;
     this.hurtStartTime = 0;
+    this.drinkStartTime = 0;
     this.lastHurtTime = 0;
     this.hurtCoolDown = 0.3;
     this.firstAttackDelay = 0.4;
@@ -71,7 +82,7 @@ class Player extends TileSprite {
   }
 
   idle(dir, forced = false) {
-    if (this.state.get() !== this.states.DYING && this.state.get() !== this.states.ATTACK && (this.state.get() !== this.states.HURT || forced)) {
+    if (this.state.get() <= 1  || forced) {
       if (dir > 0) {
         this.anims.play("idle-right");
       } else {
@@ -106,7 +117,7 @@ class Player extends TileSprite {
   }
 
   walk(dir) {
-    if (!this.state.is(this.states.ATTACK) && !this.state.is(this.states.HURT) && !this.state.is(this.states.DYING)) {
+    if (this.state.get() <= 1) {
       if (dir > 0) {
         this.anims.play("walk-right");
       } else {
@@ -145,21 +156,48 @@ class Player extends TileSprite {
     }
   }
 
+  drinkPotion(t) {
+    if (this.state.get() <= 1) {
+      if (this.dir > 0) {
+        this.anims.play("drink-right");
+      } else {
+        this.anims.play("drink-left");
+      }
+      this.state.set(this.states.DRINK);
+      return t;
+    }
+  }
+
   update(dt, t) {
     super.update(dt, t);
     const { controls } = this;
-    const { x, action } = controls;
+    const { x, action, drink } = controls;
     this.hit = false;
 
     if (!this.state.is(this.states.DEAD)) {
 
+      //Walk
       if (x) {
         this.dir = x;
         this.walk(this.dir)
       } else {
         this.idle(this.dir);
       }
+      
+      // Drink Potion
+      if(drink && this.potions > 0 && !this.state.is(this.states.DRINK)){
+        this.drinkStartTime = this.drinkPotion(t);
+      }
 
+      
+      if(t >= this.drinkAnimTime + this.drinkStartTime && this.state.is(this.states.DRINK)){
+        this.potions--;
+        
+        this.hp= this.hp + 60 > 100 ? 100 : this.hp + 60 ;
+        this.idle(this.dir, true)
+      }
+
+      //Attack
       if (action) {
         if (!this.state.is(this.states.ATTACK)) {
           this.attackStartTime = this.attack(this.dir, t);
@@ -190,7 +228,7 @@ class Player extends TileSprite {
       }
 
       //Death
-      if (this.hp <= 0 ) {
+      if (this.hp <= 0) {
         if (!this.state.is(this.states.DYING)) {
           this.deathStartTime = this.die(t);
         }
@@ -199,7 +237,7 @@ class Player extends TileSprite {
           this.dead();
         }
       }
-      
+
       this.state.update(dt);
     }
   }
