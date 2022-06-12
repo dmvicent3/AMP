@@ -1,7 +1,7 @@
 import lib from "../../lib/index.js";
 const { TileSprite, Texture } = lib;
 
-const texture = new Texture("res/images/potion.png");
+const texture = new Texture("./res/images/potion.png");
 
 const pickups = {
   potion: { frames: [[0, 0]], life: 40 },

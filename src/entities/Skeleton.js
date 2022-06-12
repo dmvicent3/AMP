@@ -10,6 +10,7 @@ class Skeleton extends TileSprite {
     this.scale = { x: 3, y: 3 };
     this.player = player;
 
+    //Animations
     const { anims } = this;
     anims.add("attack-right", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(x => ({ x, y: 0 })), 0.1);
     anims.add("attack-left", [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0].map(x => ({ x, y: 5 })), 0.1);
@@ -24,6 +25,7 @@ class Skeleton extends TileSprite {
     anims.add("dead-right", [{ x: 12, y: 1 }], 0.1);
     anims.add("dead-left", [{ x: 0, y: 6 }], 0.1);
 
+    //Estados do enimigo
     this.states = {
       IDLE: 0,
       WALK: 1,
@@ -33,23 +35,27 @@ class Skeleton extends TileSprite {
       DEAD: 5
     };
 
+    //Atributos do enimigo
     this.hp = 100;
     this.power = 10;
     this.speed = 0.6;
-    this.hit = false;
     this.dir = 1;
-    this.state = new State(this.states.IDLE);
-    this.idle();
+
+    //Tempos das animações
     this.attackAnimTime = 1.2;
     this.deathAnimTime = 1.2;
     this.hurtAnimTime = 0.1;
     this.attackStartTime = 0;
-    this.firstAttackDelay = 0.4;
-    this.secondAttackDelay = 0.8;
     this.deathStartTime = 0;
     this.hurtStartTime = 0;
-    this.lastHurtTime = 0;
-    this.hurtCoolDown = 0.3;
+    this.lastHurtTime = 0; //Ultima vez que o enimigo recebeu dano
+    this.hurtCoolDown = 0.3; //Impedir o enimigo de ser atacado mais de uma vez por x segundos
+    this.firstAttackDelay = 0.4; //Tempo do registo do primeiro ataque
+    this.secondAttackDelay = 0.8; //Tempo do registo do segundo ataque
+    this.hit = false; //Flag para saber se o enimigo atacou o player
+
+    this.state = new State(this.states.IDLE);
+    this.idle();
   }
 
   idle() {
@@ -117,11 +123,13 @@ class Skeleton extends TileSprite {
     this.state.set(this.states.DEAD);
   }
 
+  //Retornar o lado em que o player se encontra no ecrã em relação ao enimigo
   getPlayerSide() {
     if (this.pos.x > this.player.pos.x) return -1;
     if (this.pos.x < this.player.pos.x) return 1;
   }
 
+  //Colisão da espada do player com o enimigo
   gotHit() {
     const { pos, w, h, scale } = this;
     const b = this.player;
@@ -132,6 +140,7 @@ class Skeleton extends TileSprite {
       pos.y + h / scale.y > b.pos.y;
   }
 
+  //Colisão da espada do enimigo com o player
   hitPlayer() {
     const { pos, w, h, scale } = this;
     const b = this.player;
@@ -149,19 +158,19 @@ class Skeleton extends TileSprite {
     if (!this.state.is(this.states.DEAD)) {
       if (this.pos.x - this.player.pos.x < 700 && !this.player.state.is(this.states.DEAD)) { //Walk
         if (this.pos.x > this.player.pos.x + this.w / 2 || this.pos.x < this.player.pos.x - this.w / 6) {
-          this.walk();
-        } else { //Attack
+          this.walk(); // Mover enimgo na direção do player
+        } else { // Se o enimigo estiver perto do player, atacar
           if (!this.state.is(this.states.ATTACK) && this.attackStartTime == 0) {
-            this.attackStartTime = this.attack(t);
+            this.attackStartTime = this.attack(t); //Iniciar ataque
           }
         }
 
         if (t >= this.attackStartTime + this.attackAnimTime && this.state.is(this.states.ATTACK) && this.attackStartTime > 0) {
           this.attackStartTime = 0;
-          this.idle();
+          this.idle(); //Terminar ataque
         }
 
-        if (this.state.is(this.states.ATTACK)) {
+        if (this.state.is(this.states.ATTACK)) { //Registar primeiro e segundo ataque
           if (t >= this.attackStartTime + this.firstAttackDelay && t <= this.attackStartTime + this.secondAttackDelay - 0.1) {
             this.hit = true;
           }
@@ -172,13 +181,13 @@ class Skeleton extends TileSprite {
         }
 
         //Hurt
-
+        //Se o player estiver a atacar, e houver uma colisão, muda o estado para hurt
         if (this.player.hit && this.gotHit() && !this.state.is(this.states.HURT) && this.dir !== this.player.dir) {
 
           if (t >= this.lastHurtTime + this.hurtCoolDown) {
-            this.hurtStartTime = this.hurt(t);
+            this.hurtStartTime = this.hurt(t); // Iniciar animação 
             this.lastHurtTime = this.hurtStartTime;
-            this.hp -= this.player.power;
+            this.hp -= this.player.power; // Perder hp
           }
 
         }
@@ -186,24 +195,26 @@ class Skeleton extends TileSprite {
         if (t >= this.hurtStartTime + this.hurtAnimTime && this.state.is(this.states.HURT)) {
           this.attackStartTime = 0;
           this.hurtStartTime = 0;
-          this.idle();
+          this.idle(); // Terminar animação
         }
 
 
         //Death
         if (this.hp <= 0) {
           if (!this.state.is(this.states.DYING)) {
-            this.deathStartTime = this.die(t);
+            this.deathStartTime = this.die(t); //Começar a animação de morrer
           }
 
           if (t >= this.deathStartTime + this.deathAnimTime) {
-            this.dead()
+            this.dead(); //Terminar a animação de morrer
           }
         }
+
 
         //Hurt player
 
         if (this.hit && this.hitPlayer()) {
+          //Se o enimigo estiver a atacar o player, e houver uma colisão, chamar o metodo de dano do player
           this.player.gotHit(this.power, t);
         }
 
@@ -211,7 +222,6 @@ class Skeleton extends TileSprite {
         this.idle();
       }
     } 
-    //console.log(this.state.get())
   }
 
 }

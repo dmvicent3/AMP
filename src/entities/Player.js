@@ -11,7 +11,7 @@ class Player extends TileSprite {
     this.controls = controls;
     this.scale = { x: 2, y: 2 };
 
-
+    //Animations
     const { anims } = this;
     anims.add("idle-right", [{ x: 0, y: 13 }, { x: 1, y: 13 }, { x: 0, y: 14 }, { x: 1, y: 14 },
     { x: 0, y: 15 }, { x: 1, y: 15 }, { x: 0, y: 16 }, { x: 1, y: 16 }], 0.1);
@@ -47,7 +47,7 @@ class Player extends TileSprite {
     anims.add("drink-left", [{ x: 7, y: 25 + 7 }, { x: 6, y: 25 + 7 }, { x: 7, y: 25 + 8 }, { x: 6, y: 25 + 8 },
     { x: 7, y: 25 + 9 }, { x: 6, y: 25 + 9 }, { x: 7, y: 25 + 10 }, { x: 6, y: 25 + 10 }], 0.1);
 
-
+    //Estados do Player
     this.states = {
       IDLE: 0,
       WALK: 1,
@@ -58,12 +58,14 @@ class Player extends TileSprite {
       DEAD: 6
     };
 
+    //Atributos do Player
     this.hp = 100;
     this.potions = 1;
     this.power = 50;
     this.speed = 1;
     this.dir = 1;
 
+    //Tempos das animações
     this.attackAnimTime = 1;
     this.drinkAnimTime = 0.8;
     this.deathAnimTime = 0.3;
@@ -71,11 +73,11 @@ class Player extends TileSprite {
     this.deathStartTime = 0;
     this.hurtStartTime = 0;
     this.drinkStartTime = 0;
-    this.lastHurtTime = 0;
-    this.hurtCoolDown = 0.3;
-    this.firstAttackDelay = 0.4;
-    this.secondAttackDelay = 0.6;
-    this.hit = false;
+    this.lastHurtTime = 0; //Ultima vez que o player recebeu dano
+    this.hurtCoolDown = 0.3; //Impedir o jogador de ser atacado mais de uma vez por x segundos
+    this.firstAttackDelay = 0.4; //Tempo do registo do primeiro ataque
+    this.secondAttackDelay = 0.6; //Tempo do registo do segundo ataque
+    this.hit = false; //Flag para saber se o jogador atacou um inimigo
 
     this.state = new State(this.states.IDLE);
     this.idle();
@@ -179,32 +181,32 @@ class Player extends TileSprite {
       //Walk
       if (x) {
         this.dir = x;
-        this.walk(this.dir)
+        this.walk(this.dir);
       } else {
         this.idle(this.dir);
       }
       
       // Drink Potion
       if(drink && this.potions > 0 && !this.state.is(this.states.DRINK)){
-        this.drinkStartTime = this.drinkPotion(t);
+        this.drinkStartTime = this.drinkPotion(t); //Inicia a animação de beber poção
       }
 
-      
       if(t >= this.drinkAnimTime + this.drinkStartTime && this.state.is(this.states.DRINK)){
-        this.potions--;
+        this.potions--; //Remove uma poção do inventário
         
-        this.hp= this.hp + 60 > 100 ? 100 : this.hp + 60 ;
-        this.idle(this.dir, true)
+        this.hp= this.hp + 60 > 100 ? 100 : this.hp + 60 ; //Aumenta o HP do jogador
+        this.idle(this.dir, true); //Terminar animação;
       }
+
 
       //Attack
-      if (action) {
+      if (action) { // Começar ataque
         if (!this.state.is(this.states.ATTACK)) {
           this.attackStartTime = this.attack(this.dir, t);
         }
       }
 
-      if (this.state.is(this.states.ATTACK)) {
+      if (this.state.is(this.states.ATTACK)) { //Registar primeiro e segundo ataque
         if (t >= this.attackStartTime + this.firstAttackDelay && t <= this.attackStartTime + this.secondAttackDelay - 0.1) {
           this.hit = true;
         }
@@ -214,15 +216,16 @@ class Player extends TileSprite {
         }
       }
 
-
+      // Terminar ataque
       if (t >= this.attackStartTime + this.attackAnimTime && this.state.is(this.states.ATTACK) && this.attackStartTime > 0) {
         this.state.set(this.states.WALK);
       }
 
       //Hurt
-
+      // Por motivos de simplificação, para o player receber dano, o metodo gotHit(),
+      // que muda o estado do player para "hurt", é chamado na classe do inimigo.
       if (t >= this.hurtStartTime + this.hurtAnimTime && this.state.is(this.states.HURT)) {
-        this.attackStartTime = 0;
+        this.attackStartTime = 0; //Cancelar a animação de ataque se o player receber dano
         this.hurtStartTime = 0;
         this.idle(this.dir, true);
       }
@@ -230,11 +233,11 @@ class Player extends TileSprite {
       //Death
       if (this.hp <= 0) {
         if (!this.state.is(this.states.DYING)) {
-          this.deathStartTime = this.die(t);
+          this.deathStartTime = this.die(t); //Começar a animação de morrer
         }
 
         if (t >= this.deathStartTime + this.deathAnimTime && !this.state.is(this.states.DEAD)) {
-          this.dead();
+          this.dead(); //Terminar a animação de morrer
         }
       }
 

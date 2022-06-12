@@ -5,7 +5,7 @@ import ForestLevel from "../ForestLevel.js";
 import Skeleton from "../entities/Skeleton.js";
 import Pickup from "../entities/Pickup.js";
 
-const potionTexture = new Texture("/AMP/res/images/potion.png");
+const potionTexture = new Texture("./res/images/potion.png");
 const potion = new Sprite(potionTexture);
 //potion.anchor.y = 36;
 potion.pos.y = 46;
@@ -20,11 +20,11 @@ class GameScreen extends Container {
         controls.reset();
         const level = new ForestLevel(game.w, game.h, { x: 0, y: -396.5 }, player);
         this.add(level);
-        player.pos = level.playerInitPos;
+        player.pos = level.playerInitPos; //Posição inicial do player no mapa
         this.player = player;
-
         this.enemies = [];
 
+        //Posição inicial dos enimigos no mapa
         const skeletonPositions = [{ x: 1300, y: level.h - 200 }, { x: 1500, y: level.h - 200 }];
         skeletonPositions.forEach((pos) => {
             const skeleton = new Skeleton(this.player);
@@ -32,6 +32,7 @@ class GameScreen extends Container {
             this.add(skeleton);
             this.enemies.push(skeleton);
         });
+        
         this.add(player);
         this.level = level;
         this.playerHp = this.drawText("❤" + this.player.hp, { x: 150, y: 50 });
@@ -65,6 +66,7 @@ class GameScreen extends Container {
     update(dt, t) {
         super.update(dt, t);
         const { player, level } = this;
+
         //Atualizar HP Overlay e Potions
         this.remove(this.playerHp);
         this.playerHp = this.drawText("❤" + this.player.hp, { x: 150, y: 50 });
@@ -74,14 +76,16 @@ class GameScreen extends Container {
         this.nPotions = this.drawText(this.player.potions.toString(), { x: 322, y: 60 }, 28);
         this.add(this.nPotions);
 
+        //Atualizar Pickups no mapa
         this.updatePickups(t);
+
         if (!player.state.is(player.states.DEAD)) {
             if (player.state.is(player.states.WALK)) {
                 if (player.pos.x < level.w / 3) { //Centrar o player no ecrã
                     if (player.pos.x > - 100) { //Não deixar o player sair do ecrã pela esquerda
                         player.pos.x += player.controls.x * player.speed;
                     } else {
-                        player.pos.x += 1;
+                        player.pos.x += 1; //Mover player para a direita 1 pixel para não ficar preso
                     }
                 } else {
                     this.enemies.forEach(e => {
@@ -97,13 +101,13 @@ class GameScreen extends Container {
                     level.layers.forEach(layer => { //Parallax Effect: Player deixa de se mover, apenas os fundos sem movem
                         if (player.controls.x) {
                             if (player.dir > 0) {
-                                layer.nextX -= layer.speed;
+                                layer.nextX -= layer.speed; //Mover cada layer para a esquerda
                             }
                             if (this.player.dir < 0) {
                                 // Como o mapa só é infinito para a direita, é preciso impedir o Player
                                 // de andar/ver o limite do mapa quando ele anda para a esquerda
                                 if (level.layers[level.layers.length - 1].nextX < 0) {
-                                    layer.nextX += layer.speed;
+                                    layer.nextX += layer.speed; //Mover cada layer para a direita
                                 } else {
                                     if (player.pos.x > - 100) { //Não deixar o player sair do ecrã pela esquerda
                                         player.pos.x += player.controls.x * player.speed;
@@ -117,8 +121,8 @@ class GameScreen extends Container {
                 }
             }
         } else {
+            //Invocar o ecrã do game Over depois do player ter morrido por um certo tempo
             this.gameOverDelay -= dt;
-
             if (this.gameOverDelay < 0) {
                 this.gameOver();
             }
